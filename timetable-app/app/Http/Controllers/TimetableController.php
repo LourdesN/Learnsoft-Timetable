@@ -57,4 +57,10 @@ class TimetableController extends AppBaseController
 
         return redirect()->route('timetables.index');
     }
+    public function destroy()
+    {
+        NewTimetable::truncate();
+
+        return redirect()->route('timetables.index')->with('success', 'Timetable deleted successfully.');
+    }
 }

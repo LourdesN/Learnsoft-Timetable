@@ -6,7 +6,7 @@
     </a>
 </li>
 <li class="nav-item">
-    <a href="{{ route('timetable') }}" class="nav-link {{ Request::is('timetable') ? 'active' : '' }}">
+    <a href="{{ route('timetable') }}" class="nav-link {{ Request::is('timetables') ? 'active' : '' }}">
     <i class=" fas fa-solid fa-table"></i>
         <p>Timetable</p>
     </a>
@@ -15,7 +15,7 @@
 
 <li class="nav-item">
     <a href="{{ route('grades.index') }}" class="nav-link {{ Request::is('grades*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-home"></i>
+    <i class="fas fa-solid fa-school"></i>
         <p>Grades</p>
     </a>
 </li>

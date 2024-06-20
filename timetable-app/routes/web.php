@@ -41,6 +41,8 @@ Auth::routes();
 
 Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable');
 Route::resource('timetables', TimetableController::class);
+Route::delete('/timetable', [TimetableController::class, 'destroy'])->name('delete.timetable');
+
 
 Route::resource('grades', App\Http\Controllers\GradeController::class);
 Route::get('/generate-timetable', [TimetableController::class, 'generateTimetable'])->name('generate.timetable');

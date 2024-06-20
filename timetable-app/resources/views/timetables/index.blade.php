@@ -5,6 +5,11 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <a href="{{ route('generate.timetable') }}" class="btn btn-success mb-3 mt-2">Generate Timetable</a>
+            <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger mb-3 mt-2">Delete Timetable</button>
+            </form>
             <div class="card">
                 <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">Generated Timetable</div>
                 <div class="card-body">
@@ -30,7 +35,7 @@
                                         <td>{{ $entry->schedule->start_time }} - {{ $entry->schedule->end_time }}</td>
                                         <td>{{ $entry->grade->grade }}</td>
                                         <td>{{ $entry->learningArea->name }}</td>
-                                        <td>{{ $entry->teacher->surname }}</td>
+                                        <td>{{ $entry->teacher->title }} {{ $entry->teacher->surname }}</td>
                                     </tr>
                                     @endforeach
                                 @endforeach

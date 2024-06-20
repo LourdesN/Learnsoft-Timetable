@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">Edit Break</div>
+                <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">Edit Break</div>
                 <div class="card-body">
                     @if ($errors->any())
                         <div class="alert alert-danger">
