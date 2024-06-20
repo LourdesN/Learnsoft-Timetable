@@ -1,0 +1,45 @@
+
+[
+    {
+        "name": "day",
+        "dbType": "string",
+        "htmlType": "text",
+        "validations": "required"
+    },
+    {
+        "name": "time",
+        "dbType": "string",
+        "htmlType": "text",
+        "validations": "required"
+    },
+    {
+        "name": "subject",
+        "dbType": "string",
+        "htmlType": "text",
+        "validations":"required"
+    },
+    {
+        "name": "teacher",
+        "dbType": "string",
+        "htmlType": "text",
+        "validations": "required"
+    },
+    {
+        "name": "class",
+        "dbType": "string",
+        "htmlType": "text",
+        "validations":"required"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "hidden",
+        "validations": "required"
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "hidden",
+        "validations": "required"
+    }
+]
