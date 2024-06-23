@@ -10,6 +10,21 @@
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger mb-3 mt-2">Delete Timetable</button>
             </form>
+            <form action="{{ route('timetables.index') }}" method="GET" class="mb-3">
+                <div class="input-group" style="width:300px; margin-left: 35%;" >
+                    <select name="grade_id" class="form-control">
+                        <option value="">Select Grade</option>
+                        @foreach($grades as $grade)
+                            <option value="{{ $grade->id }}" {{ request('grade_id') == $grade->id ? 'selected' : '' }}>
+                                {{ $grade->grade }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-success" type="submit">Search</button>
+                    </div>
+                </div>
+            </form>
             <div class="card">
                 <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">Generated Timetable</div>
                 <div class="card-body">
@@ -27,12 +42,14 @@
                             <tbody>
                                 @foreach($timetables as $day => $entries)
                                 <tr>
-                                    <td rowspan="{{ count($entries) }}" class="align-middle" style="border-bottom:solid;">{{ $day }}</td>
+                                <td rowspan="{{ count($entries) }}" class="align-middle" style="border-bottom: 2px solid;">{{ $day }}</td>
                                     @foreach($entries as $key => $entry)
-                                    @if($key > 0)
-                                    <tr>
-                                    @endif
-                                        <td>{{ $entry->schedule->start_time }} - {{ $entry->schedule->end_time }}</td>
+                                    
+                                    <td> @if($entry->timeslot)
+                                            {{ $entry->timeslot->start_time }} - {{ $entry->timeslot->end_time }}
+                                        @else
+                                            N/A
+                                        @endif</td>
                                         <td>{{ $entry->grade->grade }}</td>
                                         <td>{{ $entry->learningArea->name }}</td>
                                         <td>{{ $entry->teacher->title }} {{ $entry->teacher->surname }}</td>

@@ -4,6 +4,9 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
+             <div class="mb-3 text-right mt-2">
+                        <a href="{{ route('breaks.create') }}" class="btn btn-success">Create New</a>
+                    </div>
             <div class="card">
                 <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">Breaks</div>
                 <div class="card-body">
@@ -17,6 +20,8 @@
                             <tr>
                                 <th>Break Name</th>
                                 <th>Duration</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -25,6 +30,8 @@
                                 <tr>
                                     <td>{{ $break->name }}</td>
                                     <td>{{ $break->duration_minutes }} Minutes</td>
+                                    <td>{{ $break->start_time }} </td>
+                                    <td>{{ $break->end_time }} </td>
                                     <td>
                                         <a href="{{ route('breaks.edit', $break->id) }}" class="btn btn-primary">Edit</a>
                                         <form action="{{ route('breaks.destroy', $break->id) }}" method="POST" style="display:inline;">

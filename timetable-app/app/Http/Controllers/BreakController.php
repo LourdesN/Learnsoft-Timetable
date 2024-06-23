@@ -31,4 +31,23 @@ class BreakController extends Controller
         $break->delete();
         return redirect()->route('breaks.index')->with('success', 'Break deleted successfully');
     }
+    public function create()
+{
+    return view('breaks.create');
+}
+
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'duration_minutes' => 'required|integer|min:1',
+    ]);
+
+    $break = new Breaks();
+    $break->name = $request->name;
+    $break->duration_minutes = $request->duration_minutes;
+    $break->save();
+
+    return redirect()->route('breaks.index')->with('success', 'Break created successfully!');
+}
 }

@@ -4,6 +4,10 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
+               <!-- Create New Button -->
+               <div class="mb-3 text-right mt-2">
+                        <a href="{{ route('schedules.create') }}" class="btn btn-success">Create New</a>
+                    </div>
             <div class="card">
                 <div class="card-header text-center"style="font-weight:600; font-size:1.5em; font-family:Georgia;">Schedules</div>
                 <div class="card-body">

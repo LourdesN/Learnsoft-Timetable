@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Breaks;
 use App\Models\Teacher;
 use App\Models\LearningArea;
 use App\Models\Schedule;
 use App\Models\Grade;
-use App\Models\NewTimetable;
+use App\Models\NewTimetable; // Make sure to import the NewTimetable model
+use App\Models\Timeslot; // Assuming Timeslot is a model that represents time slots
+use App\Models\Breaks; // Assuming Breaks is a model that represents break times
 use Illuminate\Support\Facades\DB;
 
 class TimetableGenerator
@@ -15,40 +16,52 @@ class TimetableGenerator
     public function generate()
     {
         $teachers = Teacher::all();
-        $schedules = Schedule::all();
         $learningAreas = LearningArea::all();
         $grades = Grade::all();
-        $breaks = Breaks::all(); // Get all break times
+        $timeslots = Timeslot::all(); // Get all available timeslots
+        $breaks = Breaks::all(); // Get all breaks
 
         $timetable = [];
 
         foreach ($grades as $grade) {
             foreach ($learningAreas as $learningArea) {
-                if ($this->isGradeLearningArea($grade->id, $learningArea->id)) {
-                    foreach ($schedules as $schedule) {
-                        if ($this->isBreakTime($schedule, $breaks)) {
-                            continue; // Skip breaks
-                        }
+                foreach (Schedule::DAYS_OF_WEEK as $day) {
+                    // Ensure there are 9 lessons and 3 breaks each day
+                    $lessonCount = 0;
+                    $breakCount = 0;
 
-                        $teacher = $this->findAvailableTeacher($teachers, $learningArea, $schedule);
+                    foreach ($timeslots as $timeslot) {
+                        if ($this->isBreakTime($timeslot, $breaks)) {
+                            if ($breakCount < 3) {
+                                $breakCount++;
+                                continue; // Skip break times
+                            }
+                        } else {
+                            if ($lessonCount >= 9) {
+                                break; // Stop if 9 lessons are already scheduled
+                            }
 
-                        if ($teacher) {
-                            $timetableEntry = [
-                                'grade_id' => $grade->id,
-                                'learning_area_id' => $learningArea->id,
-                                'teacher_id' => $teacher->id,
-                                'schedule_id' => $schedule->id,
-                                'day' => $schedule->day,
-                            ];
+                            $teacher = $this->findAvailableTeacher($teachers, $learningArea, $grade, $timeslot);
 
-                            // Save timetable entry using NewTimetable model
-                            NewTimetable::create($timetableEntry);
+                            if ($teacher) {
+                                $timetableEntry = [
+                                    'grade_id' => $grade->id,
+                                    'learning_area_id' => $learningArea->id,
+                                    'teacher_id' => $teacher->id,
+                                    'timeslot_id' => $timeslot->id,
+                                    'day' => $day,
+                                ];
 
-                            // Optionally, you can add the saved entry to the $timetable array
-                            $timetable[] = $timetableEntry;
+                                // Save timetable entry using NewTimetable model
+                                NewTimetable::create($timetableEntry);
 
-                            // Mark this schedule as occupied for the teacher
-                            $this->markScheduleAsOccupied($teacher, $schedule);
+                                // Optionally, you can add the saved entry to the $timetable array
+                                $timetable[] = $timetableEntry;
+
+                                // Mark this schedule and timeslot as occupied for the teacher
+                                $this->markScheduleAsOccupied($teacher, $timeslot);
+                                $lessonCount++;
+                            }
                         }
                     }
                 }
@@ -58,60 +71,61 @@ class TimetableGenerator
         return $timetable;
     }
 
-    private function isGradeLearningArea($gradeId, $learningAreaId)
+    private function isBreakTime($timeslot, $breaks)
     {
-        // Check if the learning area is associated with the grade
-        return DB::table('grade_learning_areas')
-                 ->where('grade_id', $gradeId)
-                 ->where('learning_area_id', $learningAreaId)
-                 ->exists();
-    }
-
-    private function isBreakTime($schedule, $breaks)
-    {
-        // Check if the given schedule falls within break times
+        // Check if the given timeslot falls within break times
         foreach ($breaks as $break) {
-            if ($schedule->start_time >= $break->start_time && $schedule->end_time <= $break->end_time) {
+            if ($timeslot->start_time >= $break->start_time && $timeslot->end_time <= $break->end_time) {
                 return true;
             }
         }
         return false;
     }
 
-    private function findAvailableTeacher($teachers, $learningArea, $schedule)
+    private function findAvailableTeacher($teachers, $learningArea, $grade, $timeslot)
     {
-        // Logic to find an available teacher who can teach the given learning area
+        // Find an available teacher who can teach the given learning area, and is not teaching another class at the same time
         foreach ($teachers as $teacher) {
-            if ($this->isTeacherAvailable($teacher, $schedule) && $this->canTeachLearningArea($teacher, $learningArea)) {
+            if ($this->isTeacherAvailable($teacher, $learningArea, $timeslot) &&
+                $this->canTeachLearningArea($teacher, $learningArea) &&
+                $this->canTeachGrade($teacher, $grade, $learningArea)) {
                 return $teacher;
             }
         }
         return null;
     }
 
-    private function isTeacherAvailable($teacher, $schedule)
+    private function isTeacherAvailable($teacher, $learningArea, $timeslot)
     {
-        // Check if the teacher is available at the given schedule
-        // Here you can check if the teacher is already assigned to another schedule at the same time
+        // Check if the teacher is available at the given timeslot
+        // You need to implement this based on your specific logic
         return !NewTimetable::where('teacher_id', $teacher->id)
-                            ->where('schedule_id', $schedule->id)
-                            ->exists();
+            ->where('timeslot_id', $timeslot->id)
+            ->exists();
     }
 
     private function canTeachLearningArea($teacher, $learningArea)
     {
-        // Check if the teacher is assigned to teach the given learning area
+        // Check if the teacher is qualified to teach the given learning area
         return DB::table('teachers_learning_areas')
-                 ->where('teacher_id', $teacher->id)
-                 ->where('learning_area_id', $learningArea->id)
-                 ->exists();
+            ->where('teacher_id', $teacher->id)
+            ->where('learning_area_id', $learningArea->id)
+            ->exists();
     }
 
-    private function markScheduleAsOccupied($teacher, $schedule)
+    private function canTeachGrade($teacher, $grade, $learningArea)
     {
-        // Logic to mark the schedule as occupied for the teacher
+        // Check if the teacher is allowed to teach the given grade for the learning area
+        return !DB::table('grade_learning_areas')
+            ->where('grade_id', $grade->id)
+            ->where('learning_area_id', $learningArea->id)
+            ->exists();
+    }
+
+    private function markScheduleAsOccupied($teacher, $timeslot)
+    {
+        // Logic to mark the timeslot as occupied for the teacher
         // You can add your logic here, e.g., adding a record to a pivot table to track teacher's schedules
     }
 }
-
 

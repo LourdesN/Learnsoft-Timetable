@@ -23,20 +23,12 @@ class Grade extends Model
         'created_at' => 'nullable',
         'updated_at' => 'nullable'
     ];
-       /**
-     * Define a one-to-many relationship with Timetable model.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+      
     public function timetables()
     {
         return $this->hasMany(NewTimetable::class);
     }
 
-   /*
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
     public function LearningAreas()
     {
         return $this->belongsToMany(LearningArea::class, 'name', 'number_of_lessons', 'learning_areas_id');

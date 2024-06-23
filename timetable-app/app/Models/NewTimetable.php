@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class NewTimetable extends Model
 {
-    protected $fillable = ['grade_id', 'learning_area_id', 'teacher_id', 'schedule_id', 'day'];
+    protected $fillable = ['grade_id', 'learning_area_id', 'teacher_id','start_time',
+        'end_time', 'day'];
 
     public function grade()
     {
@@ -26,5 +27,9 @@ class NewTimetable extends Model
     public function schedule()
     {
         return $this->belongsTo(Schedule::class, 'schedule_id');
+    }
+    public function timeslot()
+    {
+        return $this->belongsTo(Timeslot::class);
     }
 }

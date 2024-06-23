@@ -6,6 +6,7 @@ use App\Http\Requests\CreateTimetableRequest;
 use App\Http\Requests\UpdateTimetableRequest;
 use App\Repositories\TimetableRepository;
 use App\Http\Controllers\AppBaseController;
+use App\Models\Grade;
 use App\Models\NewTimetable;
 use App\Models\Timetable;
 use App\Services\TimetableGenerator;
@@ -23,15 +24,25 @@ class TimetableController extends AppBaseController
         $this->timetableRepository = $timetableRepo;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $timetables = NewTimetable::with(['learningArea', 'teacher', 'grade', 'schedule'])
-                                  ->get()
-                                  ->groupBy('day');
-        return view('timetables.index', compact('timetables'));
+        $grades = Grade::all();
+        $gradeId = $request->input('grade_id');
+    
+        // Eager load relationships and optionally filter by grade_id
+        $query = NewTimetable::with(['grade', 'learningArea', 'teacher', 'timeslot']);
+    
+        if ($gradeId) {
+            $query->where('grade_id', $gradeId);
+        }
+    
+        // Fetch data
+        $timetables = $query->get()->groupBy('day'); // Group by the 'day' attribute
+    
+        return view('timetables.index', compact('timetables', 'grades'));
     }
     
-
+    
 
     public function generateTimetable(TimetableGenerator $timetableGenerator)
     {

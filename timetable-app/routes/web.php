@@ -51,11 +51,17 @@ Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.
 Route::get('/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('schedules.edit');
 Route::put('/schedules/{id}', [ScheduleController::class, 'update'])->name('schedules.update');
 Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
+Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('schedules.create');
+Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+
 
 
 Route::get('/breaks', [BreakController::class, 'index'])->name('breaks.index');
 Route::get('/breaks/{id}/edit', [BreakController::class, 'edit'])->name('breaks.edit');
 Route::put('/breaks/{id}', [BreakController::class, 'update'])->name('breaks.update');
 Route::delete('/breaks/{id}', [BreakController::class, 'destroy'])->name('breaks.destroy');
+Route::get('/breaks/create', [BreakController::class, 'create'])->name('breaks.create');
+Route::post('/breaks', [BreakController::class, 'store'])->name('breaks.store');
+
 
 Route::resource('teachers_learning_areas', TeachersLearningAreasController::class);
