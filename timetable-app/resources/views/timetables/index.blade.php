@@ -26,7 +26,7 @@
                 </div>
             </form>
             <div class="mb-3">
-                <a href="{{ route('timetable.export.pdf', ['grade_id' => request('grade_id')]) }}" class="btn btn-secondary">Export to PDF</a>
+                <a href="{{ route('timetable.export.pdf', ['grade_id' => request('grade_id')]) }}" class="btn btn-success">Export to PDF</a>
             </div>
             <div class="card">
                 <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">Generated Timetable</div>
