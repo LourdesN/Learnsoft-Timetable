@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class NewTimetable extends Model
 {
     protected $fillable = ['grade_id', 'learning_area_id', 'teacher_id','start_time',
-        'end_time', 'day'];
+        'end_time', 'day', 'timeslot_id'];
 
     public function grade()
     {

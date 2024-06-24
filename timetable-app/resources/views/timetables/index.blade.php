@@ -25,6 +25,9 @@
                     </div>
                 </div>
             </form>
+            <div class="mb-3">
+                <a href="{{ route('timetable.export.pdf', ['grade_id' => request('grade_id')]) }}" class="btn btn-secondary">Export to PDF</a>
+            </div>
             <div class="card">
                 <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">Generated Timetable</div>
                 <div class="card-body">
@@ -32,32 +35,30 @@
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th style="width: 10%;">Day</th>
-                                    <th style="width: 20%">Time</th>
-                                    <th style="width: 15%">Grade</th>
-                                    <th style="width: 30%">Learning Area</th>
-                                    <th style="width: 25%">Teacher</th>
+                                    <th>Day</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Grade</th>
+                                    <th>Learning Area</th>
+                                    <th>Teacher</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($timetables as $day => $entries)
-                                <tr>
-                                <td rowspan="{{ count($entries) }}" class="align-middle" style="border-bottom: 2px solid;">{{ $day }}</td>
-                                    @foreach($entries as $key => $entry)
-                                    
-                                    <td> @if($entry->timeslot)
-                                            {{ $entry->timeslot->start_time }} - {{ $entry->timeslot->end_time }}
-                                        @else
-                                            N/A
-                                        @endif</td>
+                                @foreach($timetables as $entry)
+                                    <tr>
+                                        <td>{{ $entry->day }}</td>
+                                        <td>{{ $entry->timeslot ? $entry->timeslot->start_time : 'N/A' }}</td>
+                                        <td>{{ $entry->timeslot ? $entry->timeslot->end_time : 'N/A' }}</td>
                                         <td>{{ $entry->grade->grade }}</td>
                                         <td>{{ $entry->learningArea->name }}</td>
                                         <td>{{ $entry->teacher->title }} {{ $entry->teacher->surname }}</td>
                                     </tr>
-                                    @endforeach
                                 @endforeach
                             </tbody>
                         </table>
+                        @if($timetables->isEmpty())
+                            <div class="alert alert-info text-center">No timetable entries found.</div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -65,6 +66,7 @@
     </div>
 </div>
 @endsection
+
 
 
 

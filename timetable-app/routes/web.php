@@ -65,3 +65,6 @@ Route::post('/breaks', [BreakController::class, 'store'])->name('breaks.store');
 
 
 Route::resource('teachers_learning_areas', TeachersLearningAreasController::class);
+
+Route::get('timetable/export/pdf', [TimetableController::class, 'exportPDF'])->name('timetable.export.pdf');
+

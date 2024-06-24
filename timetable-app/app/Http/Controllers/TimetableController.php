@@ -13,6 +13,8 @@ use App\Services\TimetableGenerator;
 use Illuminate\Http\Request;
 use Flash;
 use Response;
+use Barryvdh\DomPDF\Facade as PDF;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 
 class TimetableController extends AppBaseController
 {
@@ -37,21 +39,15 @@ class TimetableController extends AppBaseController
         }
     
         // Fetch data
-        $timetables = $query->get()->groupBy('day'); // Group by the 'day' attribute
+        $timetables = $query->get();
     
         return view('timetables.index', compact('timetables', 'grades'));
     }
     
-    
 
     public function generateTimetable(TimetableGenerator $timetableGenerator)
     {
-        $timetable = $timetableGenerator->generate();
-
-        // Save the generated timetable to the database
-        foreach ($timetable as $entry) {
-            NewTimetable::create($entry);
-        }
+        $timetableGenerator->generate();
 
         return redirect()->route('timetables.index')->with('success', 'Timetable generated successfully.');
     }
@@ -74,4 +70,19 @@ class TimetableController extends AppBaseController
 
         return redirect()->route('timetables.index')->with('success', 'Timetable deleted successfully.');
     }
+
+    public function exportPDF(Request $request)
+{
+    $timetables = NewTimetable::with(['timeslot', 'grade', 'learningArea', 'teacher'])
+        ->when($request->grade_id, function ($query) use ($request) {
+            $query->where('grade_id', $request->grade_id);
+        })
+        ->get();
+
+    // Use forward slashes '/' in the view name, not backslashes '\'
+    $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables'));
+
+    // Specify a file name with .pdf extension for download
+    return $pdf->download('timetables.pdf');
+}
 }
