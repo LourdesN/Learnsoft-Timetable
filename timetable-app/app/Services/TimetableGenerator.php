@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Models\Teacher;
 use App\Models\LearningArea;
 use App\Models\Grade;
-use App\Models\NewTimetable; // Make sure to import the NewTimetable model
-use App\Models\Timeslot; // Assuming Timeslot is a model that represents time slots
-use App\Models\Breaks; // Assuming Breaks is a model that represents break times
+use App\Models\NewTimetable;
+use App\Models\Timeslot; 
+use App\Models\Breaks; 
 use Illuminate\Support\Facades\DB;
 
 class TimetableGenerator
@@ -20,8 +20,8 @@ class TimetableGenerator
         $teachers = Teacher::all();
         $learningAreas = LearningArea::all();
         $grades = Grade::all();
-        $timeslots = Timeslot::all(); // Get all available timeslots
-        $breaks = Breaks::all(); // Get all breaks
+        $timeslots = Timeslot::all(); 
+        $breaks = Breaks::all();
 
         foreach ($grades as $grade) {
             foreach (self::DAYS_OF_WEEK as $day) {
@@ -37,12 +37,12 @@ class TimetableGenerator
                         }
                     } else {
                         if ($lessonCount >= 9) {
-                            break; // Stop if 9 lessons are already scheduled
+                            break; 
                         }
 
                         foreach ($learningAreas as $learningArea) {
                             if ($this->hasReachedWeeklyLessonLimit($grade, $learningArea)) {
-                                continue; // Skip if weekly lesson limit for this learning area is reached
+                                continue;
                             }
 
                             $teacher = $this->findAvailableTeacher($teachers, $learningArea, $grade, $timeslot);
@@ -62,7 +62,7 @@ class TimetableGenerator
                                 // Mark this schedule and timeslot as occupied for the teacher
                                 $this->markScheduleAsOccupied($teacher, $timeslot);
                                 $lessonCount++;
-                                break; // Move to the next timeslot after scheduling a lesson
+                                break; 
                             }
                         }
                     }
@@ -70,7 +70,7 @@ class TimetableGenerator
             }
         }
 
-        return true; // Return true indicating the timetable generation is complete
+        return true;
     }
 
     private function isBreakTime($timeslot, $breaks)
@@ -86,7 +86,6 @@ class TimetableGenerator
 
     private function findAvailableTeacher($teachers, $learningArea, $grade, $timeslot)
     {
-        // Find an available teacher who can teach the given learning area, and is not teaching another class at the same time
         foreach ($teachers as $teacher) {
             if ($this->isTeacherAvailable($teacher, $timeslot) &&
                 $this->canTeachLearningArea($teacher, $learningArea)){
@@ -98,7 +97,6 @@ class TimetableGenerator
 
     private function isTeacherAvailable($teacher, $timeslot)
     {
-        // Check if the teacher is available at the given timeslot
         return !NewTimetable::where('teacher_id', $teacher->id)
                             ->where('timeslot_id', $timeslot->id)
                             ->exists();
@@ -106,7 +104,6 @@ class TimetableGenerator
 
     private function canTeachLearningArea($teacher, $learningArea)
     {
-        // Check if the teacher is qualified to teach the given learning area
         return DB::table('teachers_learning_areas')
                 ->where('teacher_id', $teacher->id)
                 ->where('learning_area_id', $learningArea->id)
@@ -118,11 +115,11 @@ class TimetableGenerator
         // Create a timetable entry for break
         $timetableEntry = [
             'grade_id' => $grade->id,
-            'learning_area_id' => null, // No learning area for break
-            'teacher_id' => null, // No teacher for break
+            'learning_area_id' => null, 
+            'teacher_id' => null, 
             'timeslot_id' => $timeslot->id,
             'day' => $day,
-            'is_break' => true, // Indicate this entry is a break
+            'is_break' => true, 
         ];
 
         // Save timetable entry using NewTimetable model
