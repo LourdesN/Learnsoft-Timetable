@@ -44,7 +44,13 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @php $currentDay = null; @endphp
                                 @foreach($timetables as $entry)
+                                    @if($currentDay && $currentDay !== $entry->day)
+                                        <tr class="table-danger">
+                                            <td colspan="6" class="text-center">HomeTime</td>
+                                        </tr>
+                                    @endif
                                     <tr>
                                         <td>{{ $entry->day }}</td>
                                         <td>{{ $entry->timeslot ? $entry->timeslot->start_time : 'N/A' }}</td>
@@ -53,11 +59,22 @@
                                         <td>{{ $entry->learningArea->name }}</td>
                                         <td>{{ $entry->teacher->title }} {{ $entry->teacher->surname }}</td>
                                     </tr>
+                                    @if(array_key_exists($entry->timeslot->end_time, $breaks))
+                                        <tr class="table-success">
+                                            <td colspan="6" class="text-center">{{ $breaks[$entry->timeslot->end_time] }}</td>
+                                        </tr>
+                                    @endif
+                                    @php $currentDay = $entry->day; @endphp
                                 @endforeach
+                                @if($currentDay)
+                                    <tr class="table-danger">
+                                        <td colspan="6" class="text-center">HomeTime</td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                         @if($timetables->isEmpty())
-                            <div class="alert alert-info text-center">No timetable entries found.</div>
+                            <div class="alert alert-success text-center">No timetable entries found.</div>
                         @endif
                     </div>
                 </div>
@@ -66,6 +83,8 @@
     </div>
 </div>
 @endsection
+
+
 
 
 

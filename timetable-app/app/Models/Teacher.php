@@ -18,4 +18,8 @@ class Teacher extends Model
     {
         return $this->hasMany(NewTimetable::class);
     }
+    public function learningAreas()
+    {
+        return $this->belongsToMany(LearningArea::class, 'teachers_learning_areas', 'teacher_id', 'learning_area_id');
+    }
 }

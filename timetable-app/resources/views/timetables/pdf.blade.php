@@ -68,6 +68,11 @@
                     <td>{{ $entry->learningArea->name }}</td>
                     <td>{{ $entry->teacher->title }} {{ $entry->teacher->surname }}</td>
                 </tr>
+                @if(array_key_exists($entry->timeslot->end_time, $breaks))
+                <tr class="table-success" style="background-color:cadetblue;">
+                    <td colspan="6" class="text-center" style="text-align:center;">{{ $breaks[$entry->timeslot->end_time] }}</td>
+                 </tr>
+                @endif
             @endforeach
         </tbody>
     </table>

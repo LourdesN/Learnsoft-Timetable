@@ -37,11 +37,17 @@ class TimetableController extends AppBaseController
         if ($gradeId) {
             $query->where('grade_id', $gradeId);
         }
+
+        $breaks = [
+            '09:20:00' => 'Short Break',
+            '11:00:00' => 'Long Break',
+            '13:00:00' => 'Lunch Break'
+        ];
     
         // Fetch data
         $timetables = $query->get();
     
-        return view('timetables.index', compact('timetables', 'grades'));
+        return view('timetables.index', compact('timetables', 'grades', 'breaks'));
     }
     
 
@@ -78,9 +84,15 @@ class TimetableController extends AppBaseController
             $query->where('grade_id', $request->grade_id);
         })
         ->get();
+        
+        $breaks = [
+            '09:20:00' => 'Short Break',
+            '11:00:00' => 'Long Break',
+            '13:00:00' => 'Lunch Break'
+        ];
 
     // Use forward slashes '/' in the view name, not backslashes '\'
-    $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables'));
+    $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables','breaks'));
 
     // Specify a file name with .pdf extension for download
     return $pdf->download('timetables.pdf');
