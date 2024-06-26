@@ -31,6 +31,7 @@ class TimetableController extends AppBaseController
         $grades = Grade::all();
         $gradeId = $request->input('grade_id');
     
+    
         // Eager load relationships and optionally filter by grade_id
         $query = NewTimetable::with(['grade', 'learningArea', 'teacher', 'timeslot']);
     
@@ -38,6 +39,7 @@ class TimetableController extends AppBaseController
             $query->where('grade_id', $gradeId);
         }
 
+        $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $breaks = [
             '09:20:00' => 'Short Break',
             '11:00:00' => 'Long Break',
@@ -47,7 +49,7 @@ class TimetableController extends AppBaseController
         // Fetch data
         $timetables = $query->get();
     
-        return view('timetables.index', compact('timetables', 'grades', 'breaks'));
+        return view('timetables.index', compact('timetables', 'grades', 'breaks', 'daysOfWeek'));
     }
     
 
