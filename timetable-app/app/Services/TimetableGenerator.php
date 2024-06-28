@@ -6,8 +6,8 @@ use App\Models\Teacher;
 use App\Models\LearningArea;
 use App\Models\Grade;
 use App\Models\NewTimetable;
-use App\Models\Timeslot; 
-use App\Models\Breaks; 
+use App\Models\Timeslot;
+use App\Models\Breaks;
 use Illuminate\Support\Facades\DB;
 
 class TimetableGenerator
@@ -16,7 +16,7 @@ class TimetableGenerator
 
     public function generate()
     {
-        ini_set('max_execution_time', 300); // Increase max execution time
+        ini_set('max_execution_time', 300);
 
         $teachers = Teacher::with('learningAreas')->get();
         $learningAreas = LearningArea::all();
@@ -24,56 +24,110 @@ class TimetableGenerator
         $timeslots = Timeslot::all();
         $breaks = Breaks::all();
 
+        foreach ($grades as $grade) {
+            $this->generateForGrade($grade, $teachers, $learningAreas, $timeslots, $breaks);
+        }
+
+        return true;
+    }
+
+    public function generateForGrade($grade, $teachers = null, $learningAreas = null, $timeslots = null, $breaks = null)
+    {
+        ini_set('max_execution_time', 300); 
+        $teachers = $teachers ?? Teacher::with('learningAreas')->get();
+        $learningAreas = $learningAreas ?? LearningArea::all();
+        $timeslots = $timeslots ?? Timeslot::all();
+        $breaks = $breaks ?? Breaks::all();
+
+     
+        $gradeLearningAreas = $this->getLearningAreasForGrade($grade);
+
+        $gradeLearningAreas = $gradeLearningAreas->shuffle();
+
+        $distributedLearningAreas = $this->distributeLearningAreas($gradeLearningAreas, self::DAYS_OF_WEEK);
+
         $timetableEntries = [];
 
-        foreach ($grades as $grade) {
-            foreach (self::DAYS_OF_WEEK as $day) {
-                $lessonCount = 0;
-                $breakCount = 0;
+        foreach (self::DAYS_OF_WEEK as $day) {
+            $lessonCount = 0;
+            $breakCount = 0;
+            $dailyAssignedLearningAreas = [];
 
-                foreach ($timeslots as $timeslot) {
-                    if ($this->isBreakTime($timeslot, $breaks)) {
-                        if ($breakCount < 3) {
-                            $breakCount++;
-                            $this->createBreakTimetableEntry($timetableEntries, $grade, $timeslot, $day);
-                        }
-                    } else {
-                        if ($lessonCount >= 9) {
-                            break; 
-                        }
-
-                        foreach ($learningAreas as $learningArea) {
-                            if ($this->hasReachedDailyLessonLimit($grade, $learningArea, $day, $timetableEntries) || 
-                                $this->hasReachedWeeklyLessonLimit($grade, $learningArea, $timetableEntries)) {
-                                continue;
-                            }
-
-                            $teacher = $this->findAvailableTeacher($teachers, $learningArea, $grade, $timeslot, $timetableEntries);
-
-                            if ($teacher) {
-                                $timetableEntry = [
-                                    'grade_id' => $grade->id,
-                                    'learning_area_id' => $learningArea->id,
-                                    'teacher_id' => $teacher->id,
-                                    'timeslot_id' => $timeslot->id,
-                                    'day' => $day,
-                                ];
-
-                                $timetableEntries[] = $timetableEntry;
-
-                                $this->markScheduleAsOccupied($teacher, $timeslot, $timetableEntries);
-                                $lessonCount++;
-                                break; 
-                            }
-                        }
+            foreach ($timeslots as $timeslot) {
+                if ($this->isBreakTime($timeslot, $breaks)) {
+                    if ($breakCount < 3) {
+                        $breakCount++;
+                        $this->createBreakTimetableEntry($timetableEntries, $grade, $timeslot, $day);
                     }
+                } else {
+                    if ($lessonCount >= 9) {
+                        break;
+                    }
+
+                    $learningArea = $this->getLearningAreaForDayAndSlot($distributedLearningAreas, $day, $timeslot, $dailyAssignedLearningAreas);
+
+                    if (!$learningArea) {
+                        $learningArea = $gradeLearningAreas->random();
+                    }
+
+                    $teacher = $this->findAvailableTeacher($teachers, $learningArea, $grade, $timeslot, $timetableEntries);
+                    
+                    if (!$teacher) {
+                        $teacher = $teachers->random();
+                    }
+
+                    $timetableEntry = [
+                        'grade_id' => $grade->id,
+                        'learning_area_id' => $learningArea->id,
+                        'teacher_id' => $teacher->id,
+                        'timeslot_id' => $timeslot->id,
+                        'day' => $day,
+                    ];
+
+                    $timetableEntries[] = $timetableEntry;
+
+                    $this->markScheduleAsOccupied($teacher, $timeslot, $timetableEntries);
+                    $lessonCount++;
+                    $dailyAssignedLearningAreas[] = $learningArea->id;
                 }
             }
         }
 
         NewTimetable::insert($timetableEntries);
+    }
 
-        return true;
+    private function distributeLearningAreas($learningAreas, $days)
+    {
+        $distributed = [];
+        $dayCount = count($days);
+        $areaCount = count($learningAreas);
+
+        for ($i = 0; $i < $dayCount; $i++) {
+            $distributed[$days[$i]] = [];
+        }
+
+        foreach ($learningAreas as $index => $learningArea) {
+            $dayIndex = $index % $dayCount;
+            $distributed[$days[$dayIndex]][] = $learningArea;
+        }
+
+        return $distributed;
+    }
+
+    private function getLearningAreaForDayAndSlot($distributedLearningAreas, $day, $timeslot, $dailyAssignedLearningAreas)
+    {
+        if (!isset($distributedLearningAreas[$day])) {
+            return null;
+        }
+
+        $dayLearningAreas = $distributedLearningAreas[$day];
+        foreach ($dayLearningAreas as $learningArea) {
+            if (!in_array($learningArea->id, $dailyAssignedLearningAreas)) {
+                return $learningArea;
+            }
+        }
+
+        return null;
     }
 
     private function isBreakTime($timeslot, $breaks)
@@ -84,6 +138,15 @@ class TimetableGenerator
             }
         }
         return false;
+    }
+
+    private function getLearningAreasForGrade($grade)
+    {
+        return LearningArea::whereIn('id', function($query) use ($grade) {
+            $query->select('learning_area_id')
+                ->from('grade_learning_areas')
+                ->where('grade_id', $grade->id);
+        })->get();
     }
 
     private function findAvailableTeacher($teachers, $learningArea, $grade, $timeslot, $timetableEntries)
@@ -101,10 +164,10 @@ class TimetableGenerator
     {
         foreach ($timetableEntries as $entry) {
             if ($entry['teacher_id'] == $teacher->id && $entry['timeslot_id'] == $timeslot->id) {
-                return false;
+                return false; // Teacher is already booked for this timeslot
             }
         }
-        return true;
+        return true; // Teacher is available for this timeslot
     }
 
     private function canTeachLearningArea($teacher, $learningArea)
@@ -119,11 +182,11 @@ class TimetableGenerator
     {
         $timetableEntry = [
             'grade_id' => $grade->id,
-            'learning_area_id' => null, 
-            'teacher_id' => null, 
+            'learning_area_id' => null,
+            'teacher_id' => null,
             'timeslot_id' => $timeslot->id,
             'day' => $day,
-            'is_break' => true, 
+            'is_break' => true,
         ];
 
         $timetableEntries[] = $timetableEntry;
@@ -162,5 +225,4 @@ class TimetableGenerator
 
 
 
-
-
+  

@@ -1,80 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Timetable</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Timetable PDF</title>
     <style>
         body {
             font-family: Georgia;
             margin: 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        h2 {
-            text-align: center;
-            color: #007BFF;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px 15px;
-            text-align: left;
-        }
-        th {
-            background-color: #007BFF;
-            color: #fff;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        tr:hover {
-            background-color: #e9ecef;
+            padding: 0;
         }
         .container {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.5em;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .table, .table th, .table td {
+            border: 1px solid black;
+        }
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+        }
+        .alert {
+            padding: 5px;
+            margin: 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
         }
     </style>
 </head>
 <body>
-    <h2>St Peter and St Paul Junior Secondary School</h2>
-    <h2>Generated Timetable</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Day</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Grade</th>
-                <th>Learning Area</th>
-                <th>Teacher</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($timetables as $entry)
-                <tr>
-                    <td>{{ $entry->day }}</td>
-                    <td>{{ $entry->timeslot ? $entry->timeslot->start_time : 'N/A' }}</td>
-                    <td>{{ $entry->timeslot ? $entry->timeslot->end_time : 'N/A' }}</td>
-                    <td>{{ $entry->grade->grade }}</td>
-                    <td>{{ $entry->learningArea->name }}</td>
-                    <td>{{ $entry->teacher->title }} {{ $entry->teacher->surname }}</td>
-                </tr>
-                @if(array_key_exists($entry->timeslot->end_time, $breaks))
-                <tr class="table-success" style="background-color:cadetblue;">
-                    <td colspan="6" class="text-center" style="text-align:center;">{{ $breaks[$entry->timeslot->end_time] }}</td>
-                 </tr>
-                @endif
-            @endforeach
-        </tbody>
-    </table>
+    <div class="container">
+        <div class="header">
+            Generated Timetable
+            @if($timetables->first() && $timetables->first()->grade)
+                <div>{{ $timetables->first()->grade->grade }}</div>
+            @endif
+        </div>
+        @if($timetables->isEmpty())
+            <div class="alert alert-danger text-center">
+                No Timetable Entries &#9786;.
+            </div>
+        @else
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Timeline</th>
+                        @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day)
+                            <th>{{ $day }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($timetables->groupBy('timeslot.id') as $timeslotId => $entries)
+                        <tr>
+                            <td style="width:18%;">{{ $entries->first()->timeslot->start_time }} - {{ $entries->first()->timeslot->end_time }}</td>
+                            @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day)
+                                @php
+                                    $entry = $entries->where('day', $day)->first();
+                                    $isBreak = $breaks->has($entries->first()->timeslot->start_time);
+                                @endphp
+                                <td>
+                                    @if($isBreak)
+                                        <div class="alert alert-success text-center">
+                                            {{ $breaks[$entries->first()->timeslot->start_time]->name }}
+                                        </div>
+                                    @elseif($entry)
+                                        <span><strong>Learning Area:</strong> {{ $entry->learningArea->name }}</span><br>
+                                        <span><strong>Teacher:</strong> {{ $entry->teacher->title }} {{ $entry->teacher->surname }}</span>
+                                    @endif
+                                </td>
+                            @endforeach
+                        </tr>
+                        @if ($breaks->has($entries->first()->timeslot->end_time))
+                            <tr>
+                                <td style="width:18%;">{{ $entries->first()->timeslot->end_time }} - {{ $breaks[$entries->first()->timeslot->end_time]->end_time }}</td>
+                                @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day)
+                                    <td class="text-center">
+                                        <div class="alert alert-success">
+                                            {{ $breaks[$entries->first()->timeslot->end_time]->name }}
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
 </body>
 </html>
+
+
+

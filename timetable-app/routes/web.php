@@ -68,3 +68,8 @@ Route::resource('teachers_learning_areas', TeachersLearningAreasController::clas
 
 Route::get('timetable/export/pdf', [TimetableController::class, 'exportPDF'])->name('timetable.export.pdf');
 
+
+Route::post('generate-timetable-by-grade', [TimetableController::class, 'generateTimetableForGrade'])->name('generate.timetable.by.grade');
+
+Route::get('/generate-timetable/{gradeId}', [TimetableController::class, 'generateTimetableForGrade']);
+
