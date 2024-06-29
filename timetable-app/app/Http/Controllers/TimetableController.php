@@ -39,6 +39,30 @@ class TimetableController extends AppBaseController
         $timetables = collect();
         $timeslots = Timeslot::all();
         $breaks = Breaks::all();
+        $learningAreaColors = [
+            'Mathematics' => '#CDB4DB',
+            'Mathematical Activities' => '#CDB4DB', 
+            'Language Activities' => ' #DC8E90',
+            'Home Science' => ' #FDAC98', 
+            'Science and Technology' => ' #FFC5A6',
+            'Agriculture' => '#BF937C', 
+            'Business Studies'=> '#FFAFCC', 
+            'Kiswahili Language Activities/Kenya Sign Language (KSL)' => '#E37C78',
+            'Hygiene and Nutrition Activities' => '#FFC0B5',
+            'Moral and Life Skills Education' => ' #FFE3D1',
+            'Religious and Moral Activities' => '#DCD9CB',
+            'Physical and Health Education' =>'#F2ECE1',
+            'Creative Arts (Art, Craft, and Music)' =>' #E5F0FA',
+            'Literacy Activities'  =>'#F0EBE3',
+            'Pre-Technical and Pre-Career Education'  =>'#fae1dd',
+            'Foreign Languages (German, French, Chinese, Arabic)'  =>'#fcd5ce',
+            'Kenya Sign Language (KSL)'  =>'#f5cac3',
+            'Life Skills Education'  => ' #FFE3D1',
+            'English Language Activities'  => ' #DC8E90',
+            'Religious Education'  => '#fff1e6',
+            'Social Studies (Citizenship, Geography, History)'  => '#f8ad9d',
+            
+        ];
 
         if ($request->has('grade_id') && $request->grade_id) {
             $selectedGrade = Grade::find($request->grade_id);
@@ -48,7 +72,7 @@ class TimetableController extends AppBaseController
         }
 
     
-        return view('timetables.index', compact('grades', 'selectedGrade', 'timetables', 'timeslots', 'breaks'));
+        return view('timetables.index', compact('grades', 'selectedGrade', 'timetables', 'timeslots', 'breaks', 'learningAreaColors'));
     }
     
     
@@ -65,7 +89,7 @@ class TimetableController extends AppBaseController
 
         $this->timetableGenerator->generateForGrade($grade);
 
-        return redirect()->route('timetables.index')->with('success', 'Timetable generated successfully for grade ' . $grade->grade);
+        return redirect()->route('timetables.index', ['grade_id' => $gradeId])->with('success', 'Timetable generated successfully for ' . $grade->grade);
     } catch (\Exception $e) {
         return redirect()->route('timetables.index')->with('error', 'Failed to generate timetable. Ensure there are teachers, learning areas, timeslots, grade_learning_areas, teachers_learning_areas and breaks data available. ');
     }
@@ -83,12 +107,19 @@ class TimetableController extends AppBaseController
 
         return redirect()->route('timetables.index');
     }
-    public function destroy()
+    public function destroy(Request $request)
     {
-        NewTimetable::truncate();
-
-        return redirect()->route('timetables.index')->with('success', 'Timetable deleted successfully.');
+        $gradeId = $request->input('grade_id');
+    
+        if (!$gradeId) {
+            return redirect()->route('timetables.index')->with('error', 'Grade ID is required to delete timetable.');
+        }
+    
+        NewTimetable::where('grade_id', $gradeId)->delete();
+    
+        return redirect()->route('timetables.index')->with('success', 'Timetable deleted successfully for the selected grade.');
     }
+    
 
     public function exportPDF(Request $request)
     {

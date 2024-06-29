@@ -16,24 +16,32 @@
         @endif
 
         <div class="col-md-12">
-           
-            <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger mb-3 mt-2">Delete Timetable</button>
-            </form>
-
+    <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
+    @csrf
+    @method('DELETE')
+    <div class="input-group mb-3">
+        <select name="grade_id" class="form-control">
+            <option value="">Select Grade to Delete</option>
+            @foreach($grades as $grade)
+                <option value="{{ $grade->id }}">{{ $grade->grade }}</option>
+            @endforeach
+        </select>
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-danger">Delete Timetable</button>
+        </div>
+    </div>
+    </form>
             <form action="{{ route('generate.timetable.by.grade') }}" method="POST">
                 @csrf
-                <div class="input-group mt-2 mb-4" style="width:450px; ">
+                <div class="input-group mt-2 mb-4" style="width:400px;">
                     <select name="grade_id" class="form-control">
-                        <option value="">Select Grade</option>
+                        <option value="">Select Grade to Generate</option>
                         @foreach($grades as $grade)
                             <option value="{{ $grade->id }}">{{ $grade->grade }}</option>
                         @endforeach
                     </select>
                     <div class="input-group-append">
-                        <button type="submit" class="btn btn-success mb-3">Generate for Selected Grade</button>
+                        <button type="submit" class="btn btn-success mb-3">Generate Timetable</button>
                     </div>
                 </div>
             </form>
@@ -93,8 +101,9 @@
                                                     $isBreak = $breaks->where('start_time', $timeslot->start_time)
                                                                       ->where('end_time', $timeslot->end_time)
                                                                       ->first();
+                                                    $backgroundColor = $entry ? ($learningAreaColors[$entry->learningArea->name] ?? '#FFFFFF') : '#FFFFFF';
                                                 @endphp
-                                                <td>
+                                                <td style="background-color: {{ $backgroundColor }};">
                                                     @if($isBreak)
                                                         <div class="alert alert-success text-center">
                                                             {{ $isBreak->name }}
@@ -131,6 +140,7 @@
     </div>
 </div>
 @endsection
+
 
 
 
