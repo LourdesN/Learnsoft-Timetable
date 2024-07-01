@@ -16,10 +16,10 @@
         @endif
 
         <div class="col-md-12">
-    <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
+        <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
     @csrf
     @method('DELETE')
-    <div class="input-group mb-3">
+    <div class="input-group mb-3 mt-2">
         <select name="grade_id" class="form-control">
             <option value="">Select Grade to Delete</option>
             @foreach($grades as $grade)
@@ -31,7 +31,7 @@
         </div>
     </div>
     </form>
-            <form action="{{ route('generate.timetable.by.grade') }}" method="POST">
+    <form action="{{ route('generate.timetable.by.grade') }}" method="POST">
                 @csrf
                 <div class="input-group mt-2 mb-4" style="width:400px;">
                     <select name="grade_id" class="form-control">
@@ -45,9 +45,8 @@
                     </div>
                 </div>
             </form>
-
             <form action="{{ route('timetables.index') }}" method="GET" class="mb-3">
-                <div class="input-group" style="width:300px; margin-left: 35%;">
+                <div class="input-group" style="width:250px; margin-left: 35%;">
                     <select name="grade_id" class="form-control">
                         <option value="">Select Grade</option>
                         @foreach($grades as $grade)
@@ -101,9 +100,8 @@
                                                     $isBreak = $breaks->where('start_time', $timeslot->start_time)
                                                                       ->where('end_time', $timeslot->end_time)
                                                                       ->first();
-                                                    $backgroundColor = $entry ? ($learningAreaColors[$entry->learningArea->name] ?? '#FFFFFF') : '#FFFFFF';
                                                 @endphp
-                                                <td style="background-color: {{ $backgroundColor }};">
+                                                    <td @if($entry) style="background-color: {{ $learningAreaColors[$entry->learningArea->name] ?? '#FFFFFF' }};" @endif>
                                                     @if($isBreak)
                                                         <div class="alert alert-success text-center">
                                                             {{ $isBreak->name }}
@@ -140,6 +138,7 @@
     </div>
 </div>
 @endsection
+
 
 
 

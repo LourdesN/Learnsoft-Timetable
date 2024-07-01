@@ -14,12 +14,8 @@ use App\Models\LearningArea;
 use App\Models\NewTimetable;
 use App\Models\Teacher;
 use App\Models\Timeslot;
-use App\Models\Timetable;
 use App\Services\TimetableGenerator;
 use Illuminate\Http\Request;
-use Flash;
-use Response;
-use Barryvdh\DomPDF\Facade as PDF;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 
 class TimetableController extends AppBaseController
@@ -39,43 +35,30 @@ class TimetableController extends AppBaseController
         $timetables = collect();
         $timeslots = Timeslot::all();
         $breaks = Breaks::all();
-        $learningAreaColors = [
-            'Mathematics' => '#CDB4DB',
-            'Mathematical Activities' => '#CDB4DB', 
-            'Language Activities' => ' #DC8E90',
-            'Home Science' => ' #FDAC98', 
-            'Science and Technology' => ' #FFC5A6',
-            'Agriculture' => '#BF937C', 
-            'Business Studies'=> '#FFAFCC', 
-            'Kiswahili Language Activities/Kenya Sign Language (KSL)' => '#E37C78',
-            'Hygiene and Nutrition Activities' => '#FFC0B5',
-            'Moral and Life Skills Education' => ' #FFE3D1',
-            'Religious and Moral Activities' => '#DCD9CB',
-            'Physical and Health Education' =>'#F2ECE1',
-            'Creative Arts (Art, Craft, and Music)' =>' #E5F0FA',
-            'Literacy Activities'  =>'#F0EBE3',
-            'Pre-Technical and Pre-Career Education'  =>'#fae1dd',
-            'Foreign Languages (German, French, Chinese, Arabic)'  =>'#fcd5ce',
-            'Kenya Sign Language (KSL)'  =>'#f5cac3',
-            'Life Skills Education'  => ' #FFE3D1',
-            'English Language Activities'  => ' #DC8E90',
-            'Religious Education'  => '#fff1e6',
-            'Social Studies (Citizenship, Geography, History)'  => '#f8ad9d',
-            
-        ];
-
+        $learningAreas = LearningArea::all();
+    
+        function generateRandomColor()
+        {
+            $h = mt_rand(0, 360); // Hue
+            $s = mt_rand(42, 98); // Saturation
+            $l = mt_rand(40, 90); // Lightness
+            return "hsl($h, {$s}%, {$l}%)";
+        }
+    
+        $learningAreaColors = [];
+        foreach ($learningAreas as $learningArea) {
+            $learningAreaColors[$learningArea->name] = generateRandomColor();
+        }
+    
         if ($request->has('grade_id') && $request->grade_id) {
             $selectedGrade = Grade::find($request->grade_id);
             if ($selectedGrade) {
                 $timetables = NewTimetable::where('grade_id', $selectedGrade->id)->get();
             }
         }
-
     
         return view('timetables.index', compact('grades', 'selectedGrade', 'timetables', 'timeslots', 'breaks', 'learningAreaColors'));
     }
-    
-    
  public function generateTimetableForGrade(Request $request)
 {
     try {
@@ -103,7 +86,7 @@ class TimetableController extends AppBaseController
             'timeslot_id' => 'required|exists:timeslots,id',
         ]);
 
-        Timetable::create($validated);
+        NewTimetable::create($validated);
 
         return redirect()->route('timetables.index');
     }
@@ -131,7 +114,8 @@ class TimetableController extends AppBaseController
             
         $breaks = Breaks::all()->keyBy('start_time');
     
-        $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables', 'breaks'));
+        $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables', 'breaks'))
+                        ->setPaper('a4', 'landscape');
     
         return $pdf->download('timetables.pdf');
     }

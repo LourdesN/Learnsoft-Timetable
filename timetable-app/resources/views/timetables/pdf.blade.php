@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated Timetable PDF</title>
     <style>
+          @page { 
+            size: A4 landscape;
+        }
         body {
             font-family: Georgia;
             margin: 0;
@@ -43,6 +46,7 @@
             background-color: #d4edda;
             color: #155724;
         }
+
     </style>
 </head>
 <body>
@@ -82,7 +86,7 @@
                                             {{ $breaks[$entries->first()->timeslot->start_time]->name }}
                                         </div>
                                     @elseif($entry)
-                                        <span><strong>Learning Area:</strong> {{ $entry->learningArea->name }}</span><br>
+                                        <span><strong>Learning Area:</strong> {{ $entry->learningArea->name }}</span><br><br>
                                         <span><strong>Teacher:</strong> {{ $entry->teacher->title }} {{ $entry->teacher->surname }}</span>
                                     @endif
                                 </td>
