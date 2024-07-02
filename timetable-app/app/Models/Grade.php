@@ -34,4 +34,8 @@ class Grade extends Model
         return $this->belongsToMany(LearningArea::class, 'name', 'number_of_lessons', 'learning_areas_id');
     }
     
+public function streams()
+{
+    return $this->hasMany(Stream::class);
+}
 }

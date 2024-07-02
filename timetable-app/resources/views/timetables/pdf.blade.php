@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated Timetable PDF</title>
     <style>
-          @page { 
+        @page { 
             size: A4 landscape;
         }
         body {
@@ -46,7 +46,6 @@
             background-color: #d4edda;
             color: #155724;
         }
-
     </style>
 </head>
 <body>
@@ -79,8 +78,9 @@
                                 @php
                                     $entry = $entries->where('day', $day)->first();
                                     $isBreak = $breaks->has($entries->first()->timeslot->start_time);
+                                    $learningAreaColor = $entry ? $learningAreaColors[$entry->learningArea->name] : null;
                                 @endphp
-                                <td>
+                                <td style="background-color: {{ $learningAreaColor }}">
                                     @if($isBreak)
                                         <div class="alert alert-success text-center">
                                             {{ $breaks[$entries->first()->timeslot->start_time]->name }}
@@ -111,6 +111,7 @@
     </div>
 </body>
 </html>
+
 
 
 

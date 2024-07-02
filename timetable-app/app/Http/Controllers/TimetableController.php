@@ -113,8 +113,24 @@ class TimetableController extends AppBaseController
             ->get();
             
         $breaks = Breaks::all()->keyBy('start_time');
+        $learningAreas = LearningArea::all();
+
+        // Function to generate random color in HSL format
+        function generateRandomColor()
+        {
+            $h = mt_rand(0, 360); // Hue
+            $s = mt_rand(42, 98); // Saturation
+            $l = mt_rand(40, 90); // Lightness
+            return "hsl($h, {$s}%, {$l}%)";
+        }
     
-        $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables', 'breaks'))
+        // Assign colors to learning areas dynamically
+        $learningAreaColors = [];
+        foreach ($learningAreas as $learningArea) {
+            $learningAreaColors[$learningArea->name] = generateRandomColor();
+        }
+    
+        $pdf = FacadePdf::loadView('timetables\pdf', compact('timetables', 'breaks', 'learningAreaColors'))
                         ->setPaper('a4', 'landscape');
     
         return $pdf->download('timetables.pdf');
