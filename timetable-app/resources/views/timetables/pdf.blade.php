@@ -55,6 +55,9 @@
             @if($timetables->first() && $timetables->first()->grade)
                 <div>{{ $timetables->first()->grade->grade }}</div>
             @endif
+            @if($selectedStream)
+                <div> Stream: {{ $selectedStream->stream }}</div>
+            @endif
         </div>
         @if($timetables->isEmpty())
             <div class="alert alert-danger text-center">
@@ -78,11 +81,11 @@
                                 @php
                                     $entry = $entries->where('day', $day)->first();
                                     $isBreak = $breaks->has($entries->first()->timeslot->start_time);
-                                    $learningAreaColor = $entry ? $learningAreaColors[$entry->learningArea->name] : null;
+                                    $learningAreaColor = $entry ? $learningAreaColors[$entry->learningArea->name] : 'transparent';
                                 @endphp
-                                <td style="background-color: {{ $learningAreaColor }}">
+                             <td style="--bg-color: {{ $learningAreaColor }}; background-color: var(--bg-color);">
                                     @if($isBreak)
-                                        <div class="alert alert-success text-center">
+                                        <div class="alert alert-success text-center" style="background-color: #d4edda; color: #155724;">
                                             {{ $breaks[$entries->first()->timeslot->start_time]->name }}
                                         </div>
                                     @elseif($entry)
@@ -96,7 +99,7 @@
                             <tr>
                                 <td style="width:18%;">{{ $entries->first()->timeslot->end_time }} - {{ $breaks[$entries->first()->timeslot->end_time]->end_time }}</td>
                                 @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day)
-                                    <td class="text-center">
+                                    <td class="text-center" style="background-color: #d4edda; color: #155724;">
                                         <div class="alert alert-success">
                                             {{ $breaks[$entries->first()->timeslot->end_time]->name }}
                                         </div>
@@ -111,6 +114,10 @@
     </div>
 </body>
 </html>
+
+
+
+
 
 
 

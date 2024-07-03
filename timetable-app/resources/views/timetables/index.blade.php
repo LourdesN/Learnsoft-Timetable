@@ -16,28 +16,42 @@
         @endif
 
         <div class="col-md-12">
-        <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
-    @csrf
-    @method('DELETE')
-    <div class="input-group mb-3 mt-2">
-        <select name="grade_id" class="form-control">
-            <option value="">Select Grade to Delete</option>
-            @foreach($grades as $grade)
-                <option value="{{ $grade->id }}">{{ $grade->grade }}</option>
-            @endforeach
-        </select>
-        <div class="input-group-append">
-            <button type="submit" class="btn btn-danger">Delete Timetable</button>
-        </div>
-    </div>
-    </form>
-    <form action="{{ route('generate.timetable.by.grade') }}" method="POST">
+            <form action="{{ route('delete.timetable') }}" method="POST" style="display: inline; float:right;">
                 @csrf
-                <div class="input-group mt-2 mb-4" style="width:400px;">
+                @method('DELETE')
+                <div class="input-group mb-3 mt-2">
                     <select name="grade_id" class="form-control">
-                        <option value="">Select Grade to Generate</option>
+                        <option value="">Select Grade</option>
                         @foreach($grades as $grade)
                             <option value="{{ $grade->id }}">{{ $grade->grade }}</option>
+                        @endforeach
+                    </select>
+                    <select name="stream_id" class="form-control">
+                     <option value="">Select Stream</option>
+                     @foreach($streams as $stream)
+                        <option value="{{ $stream->id }}" {{ request('stream_id') == $stream->id ? 'selected' : '' }}>
+                            {{ $stream->stream }}
+                        </option>
+                    @endforeach
+                    </select>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-danger">Delete Timetable</button>
+                    </div>
+                </div>
+            </form>
+            <form action="{{ route('generate.timetable.by.grade') }}" method="POST">
+                @csrf
+                <div class="input-group mt-2 mb-4" style="width:443px;">
+                    <select name="grade_id" class="form-control" id="grade_id">
+                        <option value="">Select Grade</option>
+                        @foreach($grades as $grade)
+                            <option value="{{ $grade->id }}">{{ $grade->grade }}</option>
+                        @endforeach
+                    </select>
+                    <select name="stream_id" class="form-control" id="stream_id">
+                        <option value="">Select Stream to Generate</option>
+                        @foreach($streams as $stream)
+                            <option value="{{ $stream->id }}">{{ $stream->stream }}</option>
                         @endforeach
                     </select>
                     <div class="input-group-append">
@@ -46,7 +60,7 @@
                 </div>
             </form>
             <form action="{{ route('timetables.index') }}" method="GET" class="mb-3">
-                <div class="input-group" style="width:250px; margin-left: 35%;">
+                <div class="input-group" style="width:350px; margin-left: 35%;">
                     <select name="grade_id" class="form-control">
                         <option value="">Select Grade</option>
                         @foreach($grades as $grade)
@@ -55,22 +69,31 @@
                             </option>
                         @endforeach
                     </select>
+                    <select name="stream_id" class="form-control">
+                     <option value="">Select Stream</option>
+                     @foreach($streams as $stream)
+                        <option value="{{ $stream->id }}" {{ request('stream_id') == $stream->id ? 'selected' : '' }}>
+                            {{ $stream->stream }}
+                        </option>
+                    @endforeach
+                    </select>
                     <div class="input-group-append">
                         <button class="btn btn-success" type="submit">Search</button>
                     </div>
                 </div>
             </form>
-
             <div class="mb-3">
-                <a href="{{ route('timetable.export.pdf', ['grade_id' => request('grade_id')]) }}" class="btn btn-success">Export to PDF</a>
+                <a href="{{ route('timetable.export.pdf', ['grade_id' => request('grade_id'), 'stream_id' => request('stream_id')]) }}" class="btn btn-success">Export Timetable to PDF</a>
             </div>
-
             <div class="card">
                 <div class="card-header text-center" style="font-weight:600; font-size:1.5em; font-family:Georgia;">
                     Generated Timetable
                     @if($selectedGrade)
                         <div>{{ $selectedGrade->grade }}</div>
                     @endif
+                    @if($selectedStream)
+                     <div>Stream {{ $selectedStream->stream }}</div>
+                     @endif
                 </div>
                 <div class="card-body">
                     @if($timetables->isEmpty())
@@ -103,11 +126,11 @@
                                                 @endphp
                                                     <td @if($entry) style="background-color: {{ $learningAreaColors[$entry->learningArea->name] ?? '#FFFFFF' }};" @endif>
                                                     @if($isBreak)
-                                                        <div class="alert alert-success text-center">
+                                                    <div class="alert alert-success text-center" style="background-color: #d4edda; color: #155724;">
                                                             {{ $isBreak->name }}
                                                         </div>
                                                     @elseif($entry)
-                                                        <span><strong>Learning Area:</strong> {{ $entry->learningArea->name }}</span><br>
+                                                        <span><strong>Learning Area:</strong> {{ $entry->learningArea->name }}</span><br><br>
                                                         <span><strong>Teacher:</strong> {{ $entry->teacher->title }} {{ $entry->teacher->surname }}</span>
                                                     @endif
                                                 </td>
@@ -119,7 +142,7 @@
                                                     <td style="width:18%;">{{ $break->start_time }} - {{ $break->end_time }}</td>
                                                     @foreach(\App\Services\TimetableGenerator::DAYS_OF_WEEK as $day)
                                                         <td class="text-center">
-                                                            <div class="alert alert-success" style="font-size:13px; font-weight:600;">
+                                                            <div class="alert alert-success" style="font-size:13px; font-weight:600; width:7rem;">
                                                                 {{ $break->name }}
                                                             </div>
                                                         </td>
@@ -138,10 +161,3 @@
     </div>
 </div>
 @endsection
-
-
-
-
-
-
-

@@ -8,6 +8,7 @@ use App\Models\Grade;
 use App\Models\NewTimetable;
 use App\Models\Timeslot;
 use App\Models\Breaks;
+use App\Models\Stream;
 use Illuminate\Support\Facades\DB;
 
 class TimetableGenerator
@@ -25,13 +26,13 @@ class TimetableGenerator
         $breaks = Breaks::all();
 
         foreach ($grades as $grade) {
-            $this->generateForGrade($grade, $teachers, $learningAreas, $timeslots, $breaks);
+            $this->generateForGrade($grade, null, $teachers, $learningAreas, $timeslots, $breaks);
         }
 
         return true;
     }
 
-    public function generateForGrade($grade, $teachers = null, $learningAreas = null, $timeslots = null, $breaks = null)
+    public function generateForGrade($grade, $stream = null, $teachers = null, $learningAreas = null, $timeslots = null, $breaks = null)
     {
         ini_set('max_execution_time', 300); 
         $teachers = $teachers ?? Teacher::with('learningAreas')->get();
@@ -39,7 +40,6 @@ class TimetableGenerator
         $timeslots = $timeslots ?? Timeslot::all();
         $breaks = $breaks ?? Breaks::all();
 
-     
         $gradeLearningAreas = $this->getLearningAreasForGrade($grade);
 
         $gradeLearningAreas = $gradeLearningAreas->shuffle();
@@ -57,7 +57,7 @@ class TimetableGenerator
                 if ($this->isBreakTime($timeslot, $breaks)) {
                     if ($breakCount < 3) {
                         $breakCount++;
-                        $this->createBreakTimetableEntry($timetableEntries, $grade, $timeslot, $day);
+                        $this->createBreakTimetableEntry($timetableEntries, $grade, $stream, $timeslot, $day);
                     }
                 } else {
                     if ($lessonCount >= 9) {
@@ -71,13 +71,14 @@ class TimetableGenerator
                     }
 
                     $teacher = $this->findAvailableTeacher($teachers, $learningArea, $grade, $timeslot, $timetableEntries);
-                    
+
                     if (!$teacher) {
                         $teacher = $teachers->random();
                     }
 
                     $timetableEntry = [
                         'grade_id' => $grade->id,
+                        'stream_id' => $stream ? $stream->id : null,
                         'learning_area_id' => $learningArea->id,
                         'teacher_id' => $teacher->id,
                         'timeslot_id' => $timeslot->id,
@@ -178,10 +179,11 @@ class TimetableGenerator
                 ->exists();
     }
 
-    private function createBreakTimetableEntry(&$timetableEntries, $grade, $timeslot, $day)
+    private function createBreakTimetableEntry(&$timetableEntries, $grade, $stream, $timeslot, $day)
     {
         $timetableEntry = [
             'grade_id' => $grade->id,
+            'stream_id' => $stream ? $stream->id : null,
             'learning_area_id' => null,
             'teacher_id' => null,
             'timeslot_id' => $timeslot->id,
@@ -191,7 +193,6 @@ class TimetableGenerator
 
         $timetableEntries[] = $timetableEntry;
     }
-
     private function markScheduleAsOccupied($teacher, $timeslot, &$timetableEntries)
     {
         // Logic to mark the timeslot as occupied for the teacher
@@ -222,6 +223,7 @@ class TimetableGenerator
         return $weeklyLessonCount >= $learningArea->number_of_lessons;
     }
 }
+
 
 
 
